@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stacy Chatbot — KT Presentation</title>
+<style>
+  :root {
+    --blue:#1a6fc4; --blue-light:#e8f2fd; --blue-mid:#4a9edd;
+    --green:#2a7d4f; --green-light:#e6f5ec;
+    --red:#c0392b; --red-light:#fdecea;
+    --amber:#b45309; --amber-light:#fef3e2;
+    --purple:#5b3fa6; --purple-light:#f0ecfb;
+    --teal:#0f766e; --teal-light:#e0f7f5;
+    --gray:#4b5563; --gray-light:#f3f4f6;
+    --text:#1f2937; --text2:#6b7280; --text3:#9ca3af;
+    --border:#e5e7eb; --bg:#f9fafb; --white:#ffffff;
+    --sidebar:240px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden}
+
+  /* SIDEBAR */
+  #sidebar{width:var(--sidebar);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+  .sb-header{padding:20px 16px 14px;border-bottom:1px solid var(--border)}
+  .sb-logo{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+  .sb-logo-dot{width:28px;height:28px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px}
+  .sb-title{font-size:13px;font-weight:600;color:var(--text)}
+  .sb-sub{font-size:11px;color:var(--text3);margin-top:2px}
+  .sb-nav{padding:10px 8px;flex:1}
+  .sb-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;margin-bottom:2px;transition:background .15s;border:none;background:none;width:100%;text-align:left}
+  .sb-item:hover{background:var(--gray-light)}
+  .sb-item.active{background:var(--blue-light)}
+  .sb-item.active .sb-num{background:var(--blue);color:#fff}
+  .sb-item.active .sb-label{color:var(--blue);font-weight:600}
+  .sb-num{width:22px;height:22px;border-radius:6px;background:var(--gray-light);color:var(--text2);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .sb-label{font-size:12.5px;color:var(--text2);line-height:1.3}
+  .sb-footer{padding:12px 16px;border-top:1px solid var(--border);font-size:11px;color:var(--text3);text-align:center}
+
+  /* MAIN */
+  #main{flex:1;overflow-y:auto;padding:32px 36px}
+  .section{display:none;animation:fadeUp .25s ease}
+  .section.active{display:block}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+  /* SECTION HEADER */
+  .sec-head{margin-bottom:24px}
+  .sec-tag{font-size:11px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--blue);margin-bottom:6px}
+  .sec-title{font-size:26px;font-weight:700;color:var(--text);margin-bottom:6px}
+  .sec-sub{font-size:14px;color:var(--text2);line-height:1.6}
+
+  /* CARDS */
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+  .grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:16px}
+  .card{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  .card-head{padding:10px 14px;font-size:13px;font-weight:600;border-bottom:1px solid var(--border)}
+  .card-body{padding:12px 14px;font-size:13px;color:var(--text2);line-height:1.7}
+  .card-body ul{padding-left:16px}
+  .card-body li{margin-bottom:3px}
+  .blue-card .card-head{background:var(--blue);color:#fff;border:none}
+  .green-card .card-head{background:var(--green);color:#fff;border:none}
+  .red-card .card-head{background:var(--red);color:#fff;border:none}
+  .amber-card .card-head{background:var(--amber);color:#fff;border:none}
+  .purple-card .card-head{background:var(--purple);color:#fff;border:none}
+  .teal-card .card-head{background:var(--teal);color:#fff;border:none}
+  .gray-card .card-head{background:var(--gray);color:#fff;border:none}
+
+  /* STAT BOXES */
+  .stat-row{display:flex;gap:12px;margin-bottom:20px}
+  .stat{flex:1;background:var(--white);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
+  .stat-val{font-size:24px;font-weight:700;color:var(--blue)}
+  .stat-lbl{font-size:11px;color:var(--text3);margin-top:3px;font-weight:500;text-transform:uppercase;letter-spacing:.4px}
+
+  /* BADGES */
+  .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+  .badge-green{background:#dcfce7;color:#166534}
+  .badge-amber{background:#fef9c3;color:#92400e}
+  .badge-blue{background:var(--blue-light);color:var(--blue)}
+
+  /* PILLS / FLOW */
+  .flow-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:8px 0}
+  .pill{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;border:1.5px solid var(--border);background:var(--white)}
+  .pill-blue{background:var(--blue-light);border-color:var(--blue);color:var(--blue)}
+  .pill-green{background:var(--green-light);border-color:var(--green);color:var(--green)}
+  .pill-red{background:var(--red-light);border-color:var(--red);color:var(--red)}
+  .pill-amber{background:var(--amber-light);border-color:var(--amber);color:var(--amber)}
+  .pill-purple{background:var(--purple-light);border-color:var(--purple);color:var(--purple)}
+  .arr{color:var(--text3);font-size:14px}
+
+  /* NOTE BOX */
+  .note{padding:12px 16px;border-radius:8px;border-left:4px solid var(--blue);background:var(--blue-light);font-size:13px;color:var(--text2);line-height:1.6;margin-top:12px}
+  .note strong{color:var(--text);font-weight:600}
+  .note-amber{border-color:var(--amber);background:var(--amber-light)}
+  .note-red{border-color:var(--red);background:var(--red-light)}
+  .note-green{border-color:var(--green);background:var(--green-light)}
+
+  /* TABLE */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{background:var(--gray-light);color:var(--text2);font-weight:600;padding:8px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid var(--border)}
+  td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:top}
+  td strong{color:var(--text);font-weight:600}
+  tr:last-child td{border:none}
+
+  /* COMPONENT CARDS */
+  .comp-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+  .comp-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:12px 14px;border-left:4px solid var(--blue)}
+  .comp-card.green-l{border-left-color:var(--green)}
+  .comp-card.amber-l{border-left-color:var(--amber)}
+  .comp-card.red-l{border-left-color:var(--red)}
+  .comp-card.purple-l{border-left-color:var(--purple)}
+  .comp-card.teal-l{border-left-color:var(--teal)}
+  .comp-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px}
+  .comp-tag{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:6px}
+  .comp-def{font-size:12.5px;color:var(--text2);line-height:1.55;margin-bottom:5px}
+  .comp-use{font-size:11.5px;color:var(--blue);font-style:italic;line-height:1.4}
+  .comp-analogy{font-size:11.5px;color:var(--green);line-height:1.4}
+
+  /* SECTION LABEL */
+  .sec-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin:18px 0 8px;display:flex;align-items:center;gap:8px}
+  .sec-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+  /* ARCHITECTURE DIAGRAM */
+  #arch-diagram{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:16px}
+  .arch-controls{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+  .arch-btn{padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);background:var(--white);color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
+  .arch-btn:hover{background:var(--gray-light)}
+  .arch-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .arch-btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .arch-btn.primary:hover{background:#1558a0}
+  .arch-step-info{flex:1;font-size:12.5px;color:var(--text2);background:var(--blue-light);padding:6px 12px;border-radius:6px;min-height:32px;line-height:1.5}
+  .arch-step-info strong{color:var(--blue)}
+
+  .arch-flow{display:flex;flex-direction:column;gap:0;align-items:center}
+  .arch-node{display:flex;align-items:center;justify-content:center;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:500;text-align:center;min-width:260px;border:2px solid transparent;transition:all .3s;cursor:default;position:relative}
+  .arch-node.dim{opacity:.35}
+  .arch-node.lit{transform:scale(1.04);box-shadow:0 0 0 3px rgba(26,111,196,.3)}
+  .arch-node.lit-green{transform:scale(1.04);box-shadow:0 0 0 3px rgba(42,125,79,.3)}
+  .arch-node.lit-red{transform:scale(1.04);box-shadow:0 0 0 3px rgba(192,57,43,.3)}
+  .arch-arr{font-size:20px;color:var(--text3);margin:3px 0;line-height:1}
+  .arch-arr.lit-arr{color:var(--blue)}
+
+  .zone-wrap{width:100%;border:2px dashed var(--border);border-radius:12px;padding:10px 16px;margin:4px 0;position:relative}
+  .zone-label{position:absolute;top:-10px;left:14px;background:var(--white);padding:0 6px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+  .zone-inner{display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap}
+  .zone-wrap.lit-zone{border-color:var(--blue);background:rgba(26,111,196,.03)}
+  .zone-wrap.lit-zone-green{border-color:var(--green);background:rgba(42,125,79,.03)}
+
+  /* DATA FLOW */
+  #flow-diagram{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:16px}
+  .flow-tabs{display:flex;gap:8px;margin-bottom:20px}
+  .flow-tab{padding:8px 18px;border-radius:8px;border:1.5px solid var(--border);background:var(--white);color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s}
+  .flow-tab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .flow-steps{display:flex;flex-direction:column;gap:0}
+  .flow-step{display:flex;align-items:flex-start;gap:14px;padding:10px 14px;border-radius:10px;transition:all .3s;border:1.5px solid transparent;margin-bottom:4px;cursor:pointer;background:var(--white)}
+  .flow-step:hover{background:var(--gray-light)}
+  .flow-step.active-step{background:var(--blue-light);border-color:var(--blue)}
+  .flow-step.active-step .fs-num{background:var(--blue);color:#fff}
+  .flow-step.done-step{opacity:.55}
+  .fs-num{width:26px;height:26px;border-radius:50%;background:var(--gray-light);color:var(--text2);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .3s}
+  .fs-content{flex:1}
+  .fs-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
+  .fs-desc{font-size:12.5px;color:var(--text2);line-height:1.5;display:none}
+  .flow-step.active-step .fs-desc{display:block;color:var(--blue)}
+  .flow-controls{display:flex;gap:8px;margin-top:14px;align-items:center}
+  .flow-progress{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+  .flow-progress-bar{height:100%;background:var(--blue);border-radius:2px;transition:width .4s}
+  .decision-box{display:flex;gap:10px;margin-top:8px}
+  .dec-hit{flex:1;padding:8px 12px;border-radius:8px;background:var(--green-light);border:1.5px solid var(--green);font-size:12px;color:var(--green);font-weight:500}
+  .dec-miss{flex:1;padding:8px 12px;border-radius:8px;background:var(--purple-light);border:1.5px solid var(--purple);font-size:12px;color:var(--purple);font-weight:500}
+
+  /* Q&A ACCORDION */
+  .qa-list{display:flex;flex-direction:column;gap:8px}
+  .qa-item{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .qa-q{padding:14px 16px;font-size:13.5px;font-weight:600;color:var(--text);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;transition:background .15s}
+  .qa-q:hover{background:var(--gray-light)}
+  .qa-item.open .qa-q{background:var(--blue);color:#fff}
+  .qa-icon{font-size:16px;font-weight:400;transition:transform .25s;flex-shrink:0}
+  .qa-item.open .qa-icon{transform:rotate(45deg)}
+  .qa-a{display:none;padding:14px 16px;font-size:13px;color:var(--text2);line-height:1.7;border-top:1px solid var(--border)}
+  .qa-item.open .qa-a{display:block}
+  .qa-a strong{color:var(--text);font-weight:600}
+  .qa-a ul{padding-left:18px;margin-top:6px}
+  .qa-a li{margin-bottom:4px}
+
+  /* STEPS (numbered) */
+  .step-list{display:flex;flex-direction:column;gap:10px}
+  .step-item{display:flex;gap:12px;align-items:flex-start}
+  .step-num{width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+  .step-content{font-size:13px;color:var(--text2);line-height:1.6}
+  .step-content strong{color:var(--text);font-weight:600}
+
+  /* SCROLLBAR */
+  #main::-webkit-scrollbar{width:5px}
+  #main::-webkit-scrollbar-track{background:transparent}
+  #main::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+  @media(max-width:768px){
+    #sidebar{width:200px} .grid-2,.grid-3,.grid-4{grid-template-columns:1fr} .comp-grid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div class="sb-header">
+    <div class="sb-logo">
+      <div class="sb-logo-dot">S</div>
+      <div>
+        <div class="sb-title">Stacy Chatbot</div>
+        <div class="sb-sub">Knowledge Transfer</div>
+      </div>
+    </div>
+  </div>
+  <div class="sb-nav">
+    <button class="sb-item active" onclick="show(0)">
+      <div class="sb-num">01</div>
+      <div class="sb-label">Introduction</div>
+    </button>
+    <button class="sb-item" onclick="show(1)">
+      <div class="sb-num">02</div>
+      <div class="sb-label">Functional Requirements</div>
+    </button>
+    <button class="sb-item" onclick="show(2)">
+      <div class="sb-num">03</div>
+      <div class="sb-label">Non-Functional Req.</div>
+    </button>
+    <button class="sb-item" onclick="show(3)">
+      <div class="sb-num">04</div>
+      <div class="sb-label">Core Components</div>
+    </button>
+    <button class="sb-item" onclick="show(4)">
+      <div class="sb-num">05</div>
+      <div class="sb-label">High Level Architecture</div>
+    </button>
+    <button class="sb-item" onclick="show(5)">
+      <div class="sb-num">06</div>
+      <div class="sb-label">Data Flow</div>
+    </button>
+    <button class="sb-item" onclick="show(6)">
+      <div class="sb-num">07</div>
+      <div class="sb-label">Interview Q&amp;A</div>
+    </button>
+  </div>
+  <div class="sb-footer">SCB Singapore · MVP1 Live</div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div id="main">
+
+<!-- ===== SECTION 1: INTRODUCTION ===== -->
+<div class="section active" id="sec0">
+  <div class="sec-head">
+    <div class="sec-tag">01 — Introduction</div>
+    <div class="sec-title">Stacy — Active AI Chatbot</div>
+    <div class="sec-sub">Standard Chartered Bank Singapore · Conversational AI for customer self-service</div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat"><div class="stat-val">24/7</div><div class="stat-lbl">Availability</div></div>
+    <div class="stat"><div class="stat-val">&lt;2s</div><div class="stat-lbl">Response Time</div></div>
+    <div class="stat"><div class="stat-val">EN+CN</div><div class="stat-lbl">Languages</div></div>
+    <div class="stat"><div class="stat-val">2.6L</div><div class="stat-lbl">Users/month 2026</div></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card red-card">
+      <div class="card-head">😫 The Problem</div>
+      <div class="card-body">
+        <ul>
+          <li>CCAC flooded with repetitive FAQ &amp; PAD calls</li>
+          <li>Agents stuck answering "What is minimum balance?"</li>
+          <li>Fraud &amp; scam cases get delayed — agents busy</li>
+          <li>No 24×7 self-service option for customers</li>
+          <li>High contact centre operational cost</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card green-card">
+      <div class="card-head">✅ Stacy's Solution</div>
+      <div class="card-body">
+        <ul>
+          <li>Instant self-service answers — no wait time</li>
+          <li>Reduces inbound hotline call volume</li>
+          <li>Frees agents for fraud / scam / urgent cases</li>
+          <li>Available 24×7 on SCB website &amp; SC Mobile</li>
+          <li>Hands off to live agent when bot can't resolve</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-3">
+    <div class="card blue-card">
+      <div class="card-head">MVP 1 — Pre-Login &nbsp;<span class="badge badge-green">Live</span></div>
+      <div class="card-body">
+        <ul>
+          <li>FAQ on public website</li>
+          <li>No login needed</li>
+          <li>reCAPTCHA bot protection</li>
+          <li>Axway API Gateway security</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card purple-card">
+      <div class="card-head">MVP 2 — Post-Login &nbsp;<span class="badge badge-amber">In Progress</span></div>
+      <div class="card-body">
+        <ul>
+          <li>SC Mobile authenticated flow</li>
+          <li>Personalized via customer data</li>
+          <li>Chat history stored</li>
+          <li>PAD support · Kong IAG</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card teal-card">
+      <div class="card-head">MVP 3 — API Layer &nbsp;<span class="badge badge-blue">Planned</span></div>
+      <div class="card-body">
+        <ul>
+          <li>Common API for all channels</li>
+          <li>Chat API Experience Layer</li>
+          <li>Process API (Morpheus)</li>
+          <li>Morpheus + Trinity backbone</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>What Stacy is:</strong> An NLP-powered AI chatbot that understands natural language, recognises customer intent, answers from a knowledge base, and escalates to a human when needed. It learns from conversations over time using supervised ML.
+  </div>
+</div>
+
+<!-- ===== SECTION 2: FUNCTIONAL REQUIREMENTS ===== -->
+<div class="section" id="sec1">
+  <div class="sec-head">
+    <div class="sec-tag">02 — Functional Requirements</div>
+    <div class="sec-title">What the System Must Do</div>
+    <div class="sec-sub">Features and behaviours the chatbot must support — the "what"</div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card green-card">
+      <div class="card-head">FR-1 · Access Without Login</div>
+      <div class="card-body"><ul>
+        <li>Available on SCB public website — no login needed</li>
+        <li>reCAPTCHA shown before chat opens (proves human)</li>
+        <li>No customer-specific data exposed in this mode</li>
+      </ul></div>
+    </div>
+    <div class="card green-card">
+      <div class="card-head">FR-2 · Post-Login Access (MVP2)</div>
+      <div class="card-body"><ul>
+        <li>Authenticated via Akamai BPM Prelogin API</li>
+        <li>Session timeout: <strong>10 minutes</strong> of inactivity</li>
+        <li>Fetches customer data: RelID, Name, CustomerID</li>
+      </ul></div>
+    </div>
+    <div class="card green-card">
+      <div class="card-head">FR-3 · Multi-Language Support</div>
+      <div class="card-body"><ul>
+        <li>English + Chinese (both UI and responses)</li>
+        <li>Works on: SCB Web, SC Mobile, NFS, Picasso</li>
+      </ul></div>
+    </div>
+    <div class="card green-card">
+      <div class="card-head">FR-4 · Conversation Management</div>
+      <div class="card-body"><ul>
+        <li>Maintains context across the full session</li>
+        <li>Shows typing indicator while generating response</li>
+        <li>Chat history stored for post-login users</li>
+      </ul></div>
+    </div>
+    <div class="card green-card">
+      <div class="card-head">FR-5 · Live Bank Handoff</div>
+      <div class="card-body"><ul>
+        <li>Bot can't resolve → connect to human agent</li>
+        <li>CASAS SSO token — seamless, no second login</li>
+        <li>Full conversation context carries over to agent</li>
+      </ul></div>
+    </div>
+    <div class="card green-card">
+      <div class="card-head">FR-6 · Banking Integration</div>
+      <div class="card-body"><ul>
+        <li>Pre-login: RM Chat, Live Bank, Kontra/CSC</li>
+        <li>Post-login: Kong IAG, ICM customer data APIs</li>
+        <li>Real-time account &amp; transaction data via Oracle DB</li>
+      </ul></div>
+    </div>
+    <div class="card green-card">
+      <div class="card-head">FR-7 · UI Requirements</div>
+      <div class="card-body"><ul>
+        <li>Stacy avatar widget · iframe overlay · timestamps</li>
+        <li>User messages right-aligned · bot messages left</li>
+        <li>All browsers · desktop + mobile responsive</li>
+      </ul></div>
+    </div>
+    <div class="card green-card">
+      <div class="card-head">FR-8 · Message Types Supported</div>
+      <div class="card-body"><ul>
+        <li>Plain text · URLs · Emoji · Formatted responses</li>
+        <li>Minimize / Close controls on widget</li>
+        <li>T&amp;C acceptance required before chatting</li>
+      </ul></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SECTION 3: NON-FUNCTIONAL ===== -->
+<div class="section" id="sec2">
+  <div class="sec-head">
+    <div class="sec-tag">03 — Non-Functional Requirements</div>
+    <div class="sec-title">How Well the System Must Perform</div>
+    <div class="sec-sub">Speed, scale, security, reliability — the "how well"</div>
+  </div>
+
+  <div class="grid-3" style="margin-bottom:16px">
+    <div class="card blue-card">
+      <div class="card-head">📈 User Scale &amp; Growth</div>
+      <div class="card-body">
+        <table>
+          <tr><th>Year</th><th>Users/month</th></tr>
+          <tr><td>2024</td><td><strong>1.0 Lakh</strong></td></tr>
+          <tr><td>2025</td><td><strong>1.7 Lakh</strong></td></tr>
+          <tr><td>2026</td><td><strong>2.6 Lakh</strong></td></tr>
+        </table>
+        <div style="font-size:12px;color:var(--text3);margin-top:8px">2.6× growth — must scale without full re-architecture. Users: SCB customers + staff.</div>
+      </div>
+    </div>
+    <div class="card blue-card">
+      <div class="card-head">⚡ Performance Targets</div>
+      <div class="card-body"><ul>
+        <li>Response time: <strong>&lt;2 seconds</strong> end-to-end</li>
+        <li>Cache HIT: ~50ms</li>
+        <li>Cache MISS (AI path): ~1–2 sec</li>
+        <li>API rate limit: <strong>100 req/min</strong></li>
+        <li>Format: JSON · Methods: GET + POST</li>
+      </ul></div>
+    </div>
+    <div class="card amber-card">
+      <div class="card-head">⚖️ CAP Theorem Decision</div>
+      <div class="card-body">
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px">Availability &gt; Consistency</div>
+        <ul>
+          <li>Stale FAQ answer (25 min old) = <strong>acceptable</strong></li>
+          <li>Chatbot DOWN = customers call hotline = <strong>defeats purpose</strong></li>
+          <li>Redis 30-min TTL directly implements this</li>
+          <li>Cache absorbs load during traffic spikes</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card red-card">
+      <div class="card-head">🔒 Security Requirements</div>
+      <div class="card-body">
+        <table>
+          <tr><th>Layer</th><th>Technology</th></tr>
+          <tr><td>DDoS &amp; bot protection</td><td><strong>Akamai BPM</strong></td></tr>
+          <tr><td>Human verification</td><td><strong>reCAPTCHA</strong></td></tr>
+          <tr><td>API gateway (pre-login)</td><td><strong>Axway</strong></td></tr>
+          <tr><td>API gateway (post-login)</td><td><strong>Kong IAG</strong></td></tr>
+          <tr><td>Authentication</td><td><strong>2FA / OTP</strong></td></tr>
+          <tr><td>Session management</td><td><strong>10-min timeout</strong></td></tr>
+          <tr><td>Network isolation</td><td><strong>DMZ1 + DMZ2</strong></td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="card purple-card">
+      <div class="card-head">🚀 Environment Pipeline</div>
+      <div class="card-body">
+        <div class="flow-row" style="margin-bottom:14px">
+          <span class="pill pill-blue">Local</span><span class="arr">→</span>
+          <span class="pill pill-green">SIT</span><span class="arr">→</span>
+          <span class="pill">UAT</span><span class="arr">→</span>
+          <span class="pill pill-amber">PT</span><span class="arr">→</span>
+          <span class="pill">PAD</span><span class="arr">→</span>
+          <span class="pill pill-red">PROD</span>
+        </div>
+        <table>
+          <tr><td><strong>SIT</strong></td><td>All services integrated &amp; tested together</td></tr>
+          <tr><td><strong>UAT</strong></td><td>Business team validates functionality</td></tr>
+          <tr><td><strong>PT</strong></td><td>Load &amp; stress testing</td></tr>
+          <tr><td><strong>PAD</strong></td><td>Mirror of PROD — final validation before go-live</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SECTION 4: CORE COMPONENTS ===== -->
+<div class="section" id="sec3">
+  <div class="sec-head">
+    <div class="sec-tag">04 — Core Components</div>
+    <div class="sec-title">Every Keyword Explained Simply</div>
+    <div class="sec-sub">What it is · Real-world analogy · How it is used in Stacy — grouped by layer</div>
+  </div>
+
+  <div class="sec-label" style="color:var(--purple);--border:var(--purple-light)">🤖 AI / Intelligence Layer</div>
+  <div class="comp-grid">
+    <div class="comp-card purple-l">
+      <div class="comp-tag">Core AI</div>
+      <div class="comp-name">NLP — Natural Language Processing</div>
+      <div class="comp-def">Enables computers to understand human language. "I lost my card" → computer understands: intent = <em>report_lost_card</em>. You don't need exact keywords.</div>
+      <div class="comp-analogy">🎯 Analogy: A person who understands what you mean, not just the exact words you use.</div>
+      <div class="comp-use">→ In Stacy: Every user message is processed through NLP inside the Morpheus engine to extract meaning and intent.</div>
+    </div>
+    <div class="comp-card purple-l">
+      <div class="comp-tag">Core AI</div>
+      <div class="comp-name">Intent Recognition</div>
+      <div class="comp-def">Classifies a message into a category (intent). Examples: <em>faq_minimum_balance</em>, <em>report_fraud</em>, <em>connect_live_agent</em>. The intent determines what the bot does next.</div>
+      <div class="comp-analogy">🎯 Analogy: A receptionist who listens to you and decides which department to direct you to.</div>
+      <div class="comp-use">→ In Stacy: Morpheus detects intent → routes to FAQ answer, banking API, or Live Bank handoff.</div>
+    </div>
+    <div class="comp-card purple-l">
+      <div class="comp-tag">AI Engine</div>
+      <div class="comp-name">Morpheus — AI Admin &amp; App Server</div>
+      <div class="comp-def">Central brain of the chatbot. Receives all user messages, runs NLP, checks Redis cache, orchestrates the whole flow end-to-end.</div>
+      <div class="comp-analogy">🎯 Analogy: The call centre manager — routes every call to the right person and keeps records.</div>
+      <div class="comp-use">→ In Stacy: Receives messages → NLP → checks Redis → calls Trinity if cache miss → manages sessions → calls banking APIs.</div>
+    </div>
+    <div class="comp-card purple-l">
+      <div class="comp-tag">AI Engine</div>
+      <div class="comp-name">Trinity AI Engine</div>
+      <div class="comp-def">Dedicated AI inference server. Only called when Redis cache has no answer (cache miss). Kept separate from Morpheus so config changes don't affect AI processing.</div>
+      <div class="comp-analogy">🎯 Analogy: The specialist expert the manager calls in when the standard answer isn't in the manual.</div>
+      <div class="comp-use">→ In Stacy: Deep NLP + ElasticSearch + Neo4j knowledge graph → generates the response.</div>
+    </div>
+    <div class="comp-card purple-l">
+      <div class="comp-tag">Knowledge Graph</div>
+      <div class="comp-name">Neo4j — Knowledge Graph DB</div>
+      <div class="comp-def">Graph database — stores concepts and their relationships (not rows/columns like SQL). Ideal for "what topics relate to what intents?"</div>
+      <div class="comp-analogy">🎯 Analogy: A mind map — every concept is connected to related concepts.</div>
+      <div class="comp-use">→ In Stacy: Trinity uses Neo4j for intent mapping. ⚠️ Must reload after ES rollback or AI gives wrong answers.</div>
+    </div>
+  </div>
+
+  <div class="sec-label" style="color:var(--teal)">⚡ Cache &amp; Search Layer</div>
+  <div class="comp-grid">
+    <div class="comp-card teal-l">
+      <div class="comp-tag">Cache</div>
+      <div class="comp-name">Redis Cache</div>
+      <div class="comp-def">In-memory key-value store. Data lives in RAM (not disk) = microsecond lookups. Cache TTL = 30 minutes. Redis Sentinel provides auto-failover if master goes down.</div>
+      <div class="comp-analogy">🎯 Analogy: Post-it note on your desk. You read it instantly. No need to walk to the filing cabinet.</div>
+      <div class="comp-use">→ In Stacy: Morpheus checks Redis before every AI call. HIT = respond in ~50ms. MISS = forward to Trinity.</div>
+    </div>
+    <div class="comp-card teal-l">
+      <div class="comp-tag">Search Engine</div>
+      <div class="comp-name">ElasticSearch</div>
+      <div class="comp-def">Distributed search engine — fast full-text search across large datasets. Cluster: 1 master + 2 data nodes. In DR failover, must point to DR ES instance.</div>
+      <div class="comp-analogy">🎯 Analogy: Google for your internal knowledge base — finds the most relevant answer from thousands of FAQs.</div>
+      <div class="comp-use">→ In Stacy: Trinity queries ElasticSearch to fetch and rank the best answer to the user's question.</div>
+    </div>
+  </div>
+
+  <div class="sec-label" style="color:var(--amber)">🗄️ Storage Layer</div>
+  <div class="comp-grid">
+    <div class="comp-card amber-l">
+      <div class="comp-tag">Relational Database</div>
+      <div class="comp-name">Oracle DB</div>
+      <div class="comp-def">Enterprise relational database. Stores structured data in tables with SQL queries. ACID-compliant: Atomic, Consistent, Isolated, Durable.</div>
+      <div class="comp-analogy">🎯 Analogy: The official records room — every customer's file is precisely stored and instantly queryable.</div>
+      <div class="comp-use">→ In Stacy: Customer profiles, account data, transaction history, audit logs, chat transcripts (structured).</div>
+    </div>
+    <div class="comp-card amber-l">
+      <div class="comp-tag">File Storage</div>
+      <div class="comp-name">NAS — Network Attached Storage</div>
+      <div class="comp-def">Centralized file storage over a network (NFS/SMB/CIFS). Stores files/blobs — NOT queryable with SQL. Very different from Oracle DB.</div>
+      <div class="comp-analogy">🎯 Analogy: Company shared network drive (like a mapped drive on Windows) — store documents, not databases.</div>
+      <div class="comp-use">→ In Stacy: AI config files, raw log files, chat transcripts as files, media, backups. Admin reads config at startup.</div>
+    </div>
+  </div>
+
+  <div class="sec-label" style="color:var(--red)">🔒 Security &amp; Network Layer</div>
+  <div class="comp-grid">
+    <div class="comp-card red-l">
+      <div class="comp-tag">Edge Security</div>
+      <div class="comp-name">Akamai BPM</div>
+      <div class="comp-def">CDN + Bot Protection Manager. Sits at the internet edge — filters traffic before it reaches any server. Blocks DDoS attacks and automated bot traffic.</div>
+      <div class="comp-analogy">🎯 Analogy: Bouncer outside the building — stops trouble before it walks through the door.</div>
+      <div class="comp-use">→ In Stacy: First line of defence. Protects the Prelogin API from bots and attack traffic.</div>
+    </div>
+    <div class="comp-card red-l">
+      <div class="comp-tag">API Gateway</div>
+      <div class="comp-name">Axway API Gateway</div>
+      <div class="comp-def">Enterprise API gateway for pre-login (MVP1). Authenticates requests, enforces rate limits (100/min), validates request format, logs everything for audit.</div>
+      <div class="comp-analogy">🎯 Analogy: Security desk at a corporate building — checks your ID, logs entry, controls which floors you can access.</div>
+      <div class="comp-use">→ In Stacy: Every pre-login API call passes through Axway. Kong IAG is used for post-login (MVP2+).</div>
+    </div>
+    <div class="comp-card red-l">
+      <div class="comp-tag">Load Balancer</div>
+      <div class="comp-name">F5 Load Balancer (ADC)</div>
+      <div class="comp-def">Application Delivery Controller. Distributes traffic across multiple app servers using Round Robin. Does SSL offloading (removes HTTPS processing from app servers). Health monitoring.</div>
+      <div class="comp-analogy">🎯 Analogy: Traffic policeman at a busy intersection — directs cars to different lanes so no single lane jams.</div>
+      <div class="comp-use">→ In Stacy: Sits in front of app cluster. Auto-removes unhealthy nodes. Industry standard in banking.</div>
+    </div>
+    <div class="comp-card red-l">
+      <div class="comp-tag">Network Zones</div>
+      <div class="comp-name">DMZ1 &amp; DMZ2</div>
+      <div class="comp-def"><strong>DMZ1 (Outer):</strong> First boundary after internet. Hosts web server, F5. Publicly reachable — minimal services only.<br><strong>DMZ2 (Inner):</strong> Between DMZ1 and internal network. Hosts app server, API gateway.</div>
+      <div class="comp-analogy">🎯 Analogy: Reception area (DMZ1) → Badge-restricted area (DMZ2) → Secure office floor (Internal Network).</div>
+      <div class="comp-use">→ In Stacy: Internal DB (Oracle, AI engine, ICM) is never directly reachable from the internet. Defense in depth.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SECTION 5: ARCHITECTURE ===== -->
+<div class="section" id="sec4">
+  <div class="sec-head">
+    <div class="sec-tag">05 — High Level Architecture</div>
+    <div class="sec-title">Layered Architecture — Request to Response</div>
+    <div class="sec-sub">Click "Step Through" to walk through how a request travels from the user to the AI engine and back</div>
+  </div>
+
+  <div id="arch-diagram">
+    <div class="arch-controls">
+      <button class="arch-btn primary" onclick="archStep()">▶ Step Through</button>
+      <button class="arch-btn" onclick="archReset()">↺ Reset</button>
+      <div class="arch-step-info" id="arch-info">Click "Step Through" to walk through the architecture layer by layer.</div>
+    </div>
+
+    <div class="arch-flow">
+      <!-- User -->
+      <div class="arch-node" id="an0" style="background:#e8f2fd;border-color:#4a9edd;color:#1a6fc4;font-weight:600">
+        🌐 User (Browser / SC Mobile)
+      </div>
+      <div class="arch-arr" id="aa0">↓</div>
+
+      <!-- Akamai -->
+      <div class="arch-node" id="an1" style="background:#fdecea;border-color:#e57373;color:#c0392b;min-width:300px">
+        🛡️ Akamai BPM — DDoS + Bot Protection
+      </div>
+      <div class="arch-arr" id="aa1">↓</div>
+
+      <!-- reCAPTCHA -->
+      <div class="arch-node" id="an2" style="background:#fef9e7;border-color:#f0c040;color:#92400e">
+        🤖 reCAPTCHA — Human Verification
+      </div>
+      <div class="arch-arr" id="aa2">↓</div>
+
+      <!-- DMZ1 Zone -->
+      <div class="zone-wrap" id="zone1" style="min-width:400px">
+        <div class="zone-label" style="color:var(--amber)">DMZ 1 — Outer Zone</div>
+        <div class="zone-inner">
+          <div class="arch-node" id="an3" style="background:#fef3e2;border-color:#f59e0b;color:#854f0b;min-width:160px;font-size:12px">Web Server</div>
+          <div style="color:var(--text3);font-size:18px">→</div>
+          <div class="arch-node" id="an4" style="background:#fef3e2;border-color:#f59e0b;color:#854f0b;min-width:180px;font-size:12px">F5 Load Balancer<br><span style="font-size:10px;font-weight:400">Round Robin · SSL Offload</span></div>
+        </div>
+      </div>
+      <div class="arch-arr" id="aa3">↓</div>
+
+      <!-- DMZ2 Zone -->
+      <div class="zone-wrap" id="zone2" style="min-width:400px">
+        <div class="zone-label" style="color:var(--purple)">DMZ 2 — Inner Zone</div>
+        <div class="zone-inner">
+          <div class="arch-node" id="an5" style="background:#f0ecfb;border-color:#9b7de8;color:#5b3fa6;min-width:200px;font-size:12px">Axway API Gateway<br><span style="font-size:10px;font-weight:400">Auth · Rate Limit · Audit</span></div>
+          <div style="color:var(--text3);font-size:18px">→</div>
+          <div class="arch-node" id="an6" style="background:#f0ecfb;border-color:#9b7de8;color:#5b3fa6;min-width:200px;font-size:12px">App Server Cluster<br><span style="font-size:10px;font-weight:400">Node 1 | Node 2 | Node 3</span></div>
+        </div>
+      </div>
+      <div class="arch-arr" id="aa4">↓</div>
+
+      <!-- Internal Zone -->
+      <div class="zone-wrap" id="zone3" style="min-width:500px">
+        <div class="zone-label" style="color:var(--blue)">Internal Network</div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;width:100%">
+          <div class="arch-node" id="an7" style="background:#e8f2fd;border-color:#4a9edd;color:#1a6fc4;min-width:280px;font-size:13px">
+            🧠 Morpheus — NLP · Intent · Orchestration
+          </div>
+          <div style="display:flex;gap:20px;align-items:center;width:100%;justify-content:center">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+              <div style="color:var(--text3);font-size:13px">↙ Cache HIT</div>
+              <div class="arch-node" id="an8" style="background:#e0f7f5;border-color:#0f766e;color:#0f766e;font-size:12px;min-width:160px">
+                ⚡ Redis Cache<br><span style="font-size:10px;font-weight:400">30 min TTL · ~50ms</span>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+              <div style="color:var(--text3);font-size:13px">↘ Cache MISS</div>
+              <div class="arch-node" id="an9" style="background:#f0ecfb;border-color:#5b3fa6;color:#5b3fa6;font-size:12px;min-width:180px">
+                🤖 Trinity AI Engine<br><span style="font-size:10px;font-weight:400">NLP · ElasticSearch · Neo4j</span>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+            <div class="arch-node" id="an10" style="background:#fef3e2;border-color:#f59e0b;color:#854f0b;font-size:11px;min-width:110px;padding:6px 10px">Oracle DB</div>
+            <div class="arch-node" id="an11" style="background:#fef3e2;border-color:#f59e0b;color:#854f0b;font-size:11px;min-width:110px;padding:6px 10px">NAS Storage</div>
+            <div class="arch-node" id="an12" style="background:#e8f2fd;border-color:#4a9edd;color:#1a6fc4;font-size:11px;min-width:110px;padding:6px 10px">ICM (Cust. Data)</div>
+            <div class="arch-node" id="an13" style="background:#fdecea;border-color:#e57373;color:#c0392b;font-size:11px;min-width:110px;padding:6px 10px">CASAS (SSO)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>Key principle:</strong> Traffic always flows Internet → Security layers → DMZ1 → DMZ2 → Internal Network. The internal network (Oracle DB, AI engine, ICM) is <strong>never directly reachable from the internet</strong>. This is defense in depth.
+  </div>
+</div>
+
+<!-- ===== SECTION 6: DATA FLOW ===== -->
+<div class="section" id="sec5">
+  <div class="sec-head">
+    <div class="sec-tag">06 — Data Flow</div>
+    <div class="sec-title">Step-by-Step Request Journey</div>
+    <div class="sec-sub">Click each step to expand details · Use Next to walk through</div>
+  </div>
+
+  <div id="flow-diagram">
+    <div class="flow-tabs">
+      <button class="flow-tab active" onclick="switchFlow('pre')">Pre-Login Flow (MVP1)</button>
+      <button class="flow-tab" onclick="switchFlow('post')">Post-Login Flow (MVP2)</button>
+    </div>
+
+    <div id="flow-pre">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:12px;padding:8px 12px;background:var(--green-light);border-radius:8px">
+        📋 <strong>Scenario:</strong> Customer visits sc.com and asks "What is the minimum balance?" — without logging in
+      </div>
+      <div class="flow-steps" id="pre-steps"></div>
+      <div id="pre-cache" style="display:none;margin:10px 0">
+        <div class="decision-box">
+          <div class="dec-hit">✅ <strong>Cache HIT</strong><br>Answer found in Redis (&lt;30 min old)<br>Response returned in ~50ms<br>No AI processing needed</div>
+          <div class="dec-miss">🔄 <strong>Cache MISS</strong><br>Not in cache → Trinity AI<br>NLP → ElasticSearch → ranked answer<br>Store in Redis → ~1–2 sec</div>
+        </div>
+      </div>
+      <div class="flow-controls">
+        <button class="arch-btn primary" onclick="flowNext('pre')">▶ Next Step</button>
+        <button class="arch-btn" onclick="flowReset('pre')">↺ Reset</button>
+        <div class="flow-progress"><div class="flow-progress-bar" id="pre-bar" style="width:0%"></div></div>
+        <span id="pre-counter" style="font-size:12px;color:var(--text3);white-space:nowrap">0 / 9</span>
+      </div>
+    </div>
+
+    <div id="flow-post" style="display:none">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:12px;padding:8px 12px;background:var(--purple-light);border-radius:8px">
+        📋 <strong>Scenario:</strong> Logged-in customer on SC Mobile checks balance, then requests a Live Bank agent
+      </div>
+      <div class="flow-steps" id="post-steps"></div>
+      <div class="flow-controls" style="margin-top:10px">
+        <button class="arch-btn primary" onclick="flowNext('post')">▶ Next Step</button>
+        <button class="arch-btn" onclick="flowReset('post')">↺ Reset</button>
+        <div class="flow-progress"><div class="flow-progress-bar" id="post-bar" style="width:0%"></div></div>
+        <span id="post-counter" style="font-size:12px;color:var(--text3);white-space:nowrap">0 / 10</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card blue-card">
+      <div class="card-head">REST (Pre-Login)</div>
+      <div class="card-body">Client sends request → Server responds → Connection closes.<br>Like sending a letter — one exchange, done.</div>
+    </div>
+    <div class="card purple-card">
+      <div class="card-head">WebSocket (Post-Login Live Chat)</div>
+      <div class="card-body">Connection stays open — both sides can send any time.<br>Like a phone call — real-time bidirectional. Required for live agent chat.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SECTION 7: Q&A ===== -->
+<div class="section" id="sec6">
+  <div class="sec-head">
+    <div class="sec-tag">07 — Interview Q&amp;A</div>
+    <div class="sec-title">Top 10 Interview Questions</div>
+    <div class="sec-sub">Click any question to expand the answer</div>
+  </div>
+
+  <div class="qa-list">
+    <div class="qa-item" onclick="toggleQA(this)">
+      <div class="qa-q">Q1: Why is Redis used instead of querying Oracle DB every time? <span class="qa-icon">+</span></div>
+      <div class="qa-a">Oracle DB is <strong>disk-based</strong> — every query involves I/O, SQL parsing, and row retrieval = 50–500ms per query. Redis is <strong>in-memory</strong> = microseconds. The same FAQ is asked hundreds of times a day. The first user triggers Trinity AI (slow path). The next 500 users hit Redis and get the answer instantly.<br><br>The 30-minute TTL ensures answers don't become too stale.<br><br><strong>Analogy:</strong> Post-it note on desk (Redis = instant) vs going to the filing cabinet every single time (Oracle DB = slow).</div>
+    </div>
+    <div class="qa-item" onclick="toggleQA(this)">
+      <div class="qa-q">Q2: Why was Availability chosen over Consistency? (CAP Theorem) <span class="qa-icon">+</span></div>
+      <div class="qa-a">CAP Theorem states a distributed system can only guarantee 2 of: Consistency, Availability, Partition Tolerance. For Stacy:<br><br><ul><li>Returning a <strong>slightly stale FAQ answer</strong> (cached 25 min ago) = acceptable</li><li>But if chatbot is <strong>DOWN</strong> = customers call hotline = defeats the entire purpose</li></ul><br><strong>Cost of unavailability &gt;&gt; cost of slight inconsistency.</strong> Redis with 30-min TTL directly implements this decision.</div>
+    </div>
+    <div class="qa-item" onclick="toggleQA(this)">
+      <div class="qa-q">Q3: Why two API Gateways — Axway and Kong? <span class="qa-icon">+</span></div>
+      <div class="qa-a">They serve <strong>different trust zones:</strong><br><br><ul><li><strong>Axway</strong> — MVP1 pre-login (unauthenticated, public-facing). Enterprise-grade, strong audit trail, proven for public APIs.</li><li><strong>Kong IAG</strong> — MVP2+ post-login (authenticated, internal). Flexible routing to ICM and CSC banking APIs.</li></ul><br>Separating gateways for public vs authenticated traffic is a security best practice — different rate limits, policies, and token types for each zone.</div>
+    </div>
+    <div class="qa-item" onclick="toggleQA(this)">
+      <div class="qa-q">Q4: How does post-login stay secure — no long-lived credentials? <span class="qa-icon">+</span></div>
+      <div class="qa-a">SC Mobile sends a <strong>short-lived access token</strong> (not a password) → Morpheus uses it to call the Customer API to prove identity.<br><br>For Live Bank handoff: <strong>CASAS issues a single-use SSO token</strong> → passed to Live Bank → validated → expires.<br><br>The chatbot <strong>never stores</strong> passwords, PINs, or long-lived secrets. Even if the chatbot were compromised, an attacker would only find already-expired tokens.</div>
+    </div>
+    <div class="qa-item" onclick="toggleQA(this)">
+      <div class="qa-q">Q5: How do you scale the system from 5,000 to 50,000 users? <span class="qa-icon">+</span></div>
+      <div class="qa-a"><strong>Strategy: Horizontal scaling at every layer — no single layer becomes the bottleneck.</strong><br><br><ul><li><strong>App Servers:</strong> Add Node 4, 5... behind F5. Zero downtime — F5 auto-discovers new nodes.</li><li><strong>Redis:</strong> Expand to cluster — multiple shards handling different key ranges.</li><li><strong>Oracle DB:</strong> Add read replicas + connection pooling for high throughput.</li><li><strong>Trinity AI:</strong> Deploy multiple instances behind a load balancer.</li><li><strong>ElasticSearch:</strong> Add data nodes to the cluster.</li></ul><br>The app layer is <strong>stateless</strong> — any node can handle any request — making horizontal scaling seamless.</div>
+    </div>
+    <div class="qa-item" onclick="toggleQA(this)">
+      <div class="qa-q">Q6: What happens if Redis goes down? <span class="qa-icon">+</span></div>
+      <div class="qa-a"><strong>Redis Sentinel</strong> monitors the Redis master node. If it goes down:<br><br><ul><li>Sentinel detects the failure within seconds</li><li>Automatically <strong>promotes a replica to become the new master</strong></li><li>All clients redirect to the new master</li></ul><br>During the brief failover window, cache miss requests fall through to Trinity AI — responses are slower (~1–2 sec) but the chatbot remains <strong>fully functional</strong>. This is by design — Availability &gt; Consistency.</div>
+    </div>
+    <div class="qa-item" onclick="toggleQA(this)">
+      <div class="qa-q">Q7: What is the difference between NAS and Oracle DB? <span class="qa-icon">+</span></div>
+      <div class="qa-a"><table><tr><th>NAS</th><th>Oracle DB</th></tr><tr><td>File/blob storage</td><td>Rows and columns (SQL)</td></tr><tr><td>No SQL queries</td><td>Full SQL + ACID</td></tr><tr><td>Config files, logs, transcripts as files, media</td><td>Customer profiles, audit, transactions</td></tr></table><br><strong>Rule:</strong> If you need to query it with SQL → Oracle DB. If you just store and retrieve it as a file → NAS.</div>
+    </div>
+    <div class="qa-item" onclick="toggleQA(this)">
+      <div class="qa-q">Q8: Why is the service startup order critical in DR? <span class="qa-icon">+</span></div>
+      <div class="qa-a">Each service depends on the previous one. Wrong order = services appear "up" but chatbot gives wrong responses.<br><br><strong>Correct startup order:</strong><ol style="padding-left:18px;margin-top:8px"><li>Supervisor (auto-starts Manager + Triniti)</li><li>ElasticSearch (1 master + 2 data nodes)</li><li>Redis Server → then Redis Sentinel</li><li>Neo4j (knowledge graph)</li><li>Morpheus + Admin + JBoss (app layer — last, depends on all above)</li></ol></div>
+    </div>
+    <div class="qa-item" onclick="toggleQA(this)">
+      <div class="qa-q">Q9: What is the Neo4j reload after ES rollback? Why is it critical? <span class="qa-icon">+</span></div>
+      <div class="qa-a">ElasticSearch and Neo4j are tightly coupled. When you roll back ES to a previous index, the content changes. If Neo4j is not reloaded, it still has the graph from the newer version — the relationships no longer match the ES content.<br><br><strong>Result:</strong> Trinity AI processes a query, navigates Neo4j, queries ES with wrong keys → incorrect/empty chatbot responses.<br><br><strong>Fix path:</strong> Login Admin → Manage AI → Knowledge Graph → Reload Graph<br><br>⚠️ This step is frequently missed in DR drills. Always include it in the runbook.</div>
+    </div>
+    <div class="qa-item" onclick="toggleQA(this)">
+      <div class="qa-q">Q10: Why does the post-login use WebSocket instead of REST? <span class="qa-icon">+</span></div>
+      <div class="qa-a"><strong>REST:</strong> Client sends request → server responds → connection closes. Like sending a letter. Works fine for FAQ queries.<br><br><strong>WebSocket:</strong> Connection stays open permanently. Both sides can send messages at any time. Like a phone call.<br><br>Post-login needs WebSocket because:<ul><li>Live Bank agent chat requires <strong>real-time bidirectional</strong> communication</li><li>Server needs to push messages to client without being asked</li><li>REST would require constant polling (inefficient and slow)</li></ul></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<script>
+// ---- SIDEBAR NAVIGATION ----
+function show(n) {
+  document.querySelectorAll('.section').forEach((s,i) => {
+    s.classList.toggle('active', i===n);
+  });
+  document.querySelectorAll('.sb-item').forEach((b,i) => {
+    b.classList.toggle('active', i===n);
+  });
+  document.getElementById('main').scrollTop = 0;
+}
+
+// ---- ACCORDION Q&A ----
+function toggleQA(el) {
+  const wasOpen = el.classList.contains('open');
+  document.querySelectorAll('.qa-item').forEach(q => q.classList.remove('open'));
+  if (!wasOpen) el.classList.add('open');
+}
+
+// ---- ARCHITECTURE STEP-THROUGH ----
+const archSteps = [
+  { nodes:['an0'], msg: '<strong>Step 1 — User</strong> opens sc.com or SC Mobile and clicks the Stacy chat widget.' },
+  { nodes:['an1'], msg: '<strong>Step 2 — Akamai BPM</strong> inspects all incoming traffic. Blocks DDoS attacks and bot traffic at the internet edge before anything else.' },
+  { nodes:['an2'], msg: '<strong>Step 3 — reCAPTCHA</strong> verifies the user is human. Bots fail here. Only real users proceed to the chatbot UI.' },
+  { nodes:['zone1','an3','an4'], msg: '<strong>Step 4 — DMZ1 (Outer Zone)</strong>: Web Server receives the HTTPS request. F5 Load Balancer distributes it to one of the app nodes using Round Robin.' },
+  { nodes:['zone2','an5','an6'], msg: '<strong>Step 5 — DMZ2 (Inner Zone)</strong>: Axway API Gateway authenticates the request, checks rate limits (100/min), and forwards to the App Server Cluster.' },
+  { nodes:['zone3','an7'], msg: '<strong>Step 6 — Morpheus (Internal Network)</strong> receives the message, runs NLP, and identifies the user\'s intent.' },
+  { nodes:['an8'], msg: '<strong>Step 7 — Redis Cache</strong> checked first. Cache HIT (answer &lt;30 min old) = respond instantly in ~50ms. No AI call needed.' },
+  { nodes:['an9'], msg: '<strong>Step 8 — Trinity AI Engine</strong> (only on cache MISS). Deep NLP + ElasticSearch + Neo4j knowledge graph → generates the best answer.' },
+  { nodes:['an10','an11','an12','an13'], msg: '<strong>Step 9 — Data layer</strong>: Oracle DB (customer data), NAS (logs/config), ICM (customer master), CASAS (SSO for Live Bank). All within the protected internal network.' }
+];
+let archCurrent = -1;
+
+function archStep() {
+  archCurrent++;
+  if (archCurrent >= archSteps.length) { archReset(); return; }
+  const step = archSteps[archCurrent];
+  // dim all
+  document.querySelectorAll('.arch-node, .zone-wrap').forEach(n => {
+    n.classList.add('dim'); n.classList.remove('lit','lit-green','lit-red','lit-zone','lit-zone-green');
+  });
+  // light up
+  step.nodes.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.classList.remove('dim');
+      if (id.startsWith('zone')) el.classList.add('lit-zone');
+      else el.classList.add('lit');
+    }
+  });
+  document.getElementById('arch-info').innerHTML = step.msg;
+  if (archCurrent === archSteps.length - 1) {
+    document.querySelector('.arch-btn.primary').textContent = '↺ Restart';
+  }
+}
+
+function archReset() {
+  archCurrent = -1;
+  document.querySelectorAll('.arch-node, .zone-wrap').forEach(n => {
+    n.classList.remove('dim','lit','lit-green','lit-red','lit-zone','lit-zone-green');
+  });
+  document.getElementById('arch-info').innerHTML = 'Click "Step Through" to walk through the architecture layer by layer.';
+  document.querySelector('.arch-btn.primary').textContent = '▶ Step Through';
+}
+
+// ---- DATA FLOW ----
+const preSteps = [
+  { title:'User opens sc.com', desc:'Browser loads the SCB public website. User sees the Stacy chat widget in the corner.' },
+  { title:'Akamai BPM blocks bots', desc:'All traffic inspected at internet edge. Bot detected? Blocked immediately. Legitimate traffic? Passed through.' },
+  { title:'reCAPTCHA — human check', desc:'User clicks Stacy widget. reCAPTCHA challenge shown. Fail = chatbot does NOT open. Pass = chat UI loads.' },
+  { title:'Chatbot UI loads', desc:'Stacy avatar widget appears as iframe overlay. Typing area, timestamp visible. User is greeted.' },
+  { title:'User types a question', desc:'User types: "What is the minimum balance?" — API call made: Browser → Web Server → F5 Load Balancer → App Node 2 (Round Robin).' },
+  { title:'Axway validates request', desc:'API Gateway checks: request format valid? Rate limit OK (100/min)? Pre-login token authenticated? Logs request for audit. PASS → forwards to Process API.' },
+  { title:'Morpheus receives message', desc:'App Server receives the message. Morpheus runs NLP on the text — extracts intent: faq_minimum_balance.' },
+  { title:'Check Redis Cache', desc:'Morpheus checks Redis. Key = hash of the message. Is there a cached answer less than 30 minutes old?' },
+  { title:'Audit → Oracle DB', desc:'Regardless of cache HIT or MISS, the chat audit is written to Oracle DB: message, intent, session ID, timestamp.' }
+];
+
+const postSteps = [
+  { title:'Login on SC Mobile (2FA/OTP)', desc:'Customer completes full authentication on SC Mobile app. 2FA/OTP verified. Session established.' },
+  { title:'Mobile sends ACCESS TOKEN', desc:'SC Mobile sends a short-lived access token to Active AI. This token proves identity — it is NOT a password and expires quickly.' },
+  { title:'Morpheus calls Customer API', desc:'Morpheus uses the access token to call the Customer API — proving who the user is without storing any credentials.' },
+  { title:'ICM returns customer data via CSC', desc:'ICM (Integrated Customer Master) returns: RelID, Customer Name, CustomerID through the CSC layer.' },
+  { title:'Personalized greeting shown', desc:'"Hello, John. How can I help?" — chatbot now has customer context for personalized responses.' },
+  { title:'Kong IAG routes to banking API', desc:'Customer asks "What is my balance?" → Kong IAG validates token → routes to internal banking API → Oracle DB returns real-time account balance.' },
+  { title:'User requests Live Bank agent', desc:'Customer says "Connect me to a human agent." Chatbot initiates Live Bank handoff flow.' },
+  { title:'CASAS issues SSO token', desc:'CASAS server generates a single-use, short-lived SSO token for this session. Chatbot passes it to Live Bank.' },
+  { title:'Live Bank validates token', desc:'Live Bank calls CASAS to validate the SSO token. Valid → live agent connected. Full conversation context carries over — customer does NOT repeat themselves.' },
+  { title:'WebSocket live chat begins', desc:'Real-time bidirectional connection (WebSocket) established. Customer ↔ Live Agent chat starts. Transcript stored in Oracle DB and NAS.' }
+];
+
+let flowCur = { pre: -1, post: -1 };
+let currentFlow = 'pre';
+
+function buildFlowSteps(type, data) {
+  const container = document.getElementById(type + '-steps');
+  container.innerHTML = '';
+  data.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'flow-step';
+    div.id = type + '-step-' + i;
+    div.onclick = () => selectFlowStep(type, i);
+    div.innerHTML = `<div class="fs-num">${i+1}</div><div class="fs-content"><div class="fs-title">${s.title}</div><div class="fs-desc">${s.desc}</div></div>`;
+    container.appendChild(div);
+  });
+}
+
+function selectFlowStep(type, idx) {
+  const data = type === 'pre' ? preSteps : postSteps;
+  flowCur[type] = idx;
+  document.querySelectorAll('#' + type + '-steps .flow-step').forEach((s, i) => {
+    s.classList.remove('active-step', 'done-step');
+    if (i < idx) s.classList.add('done-step');
+    if (i === idx) s.classList.add('active-step');
+  });
+  const total = data.length;
+  const pct = Math.round(((idx + 1) / total) * 100);
+  document.getElementById(type + '-bar').style.width = pct + '%';
+  document.getElementById(type + '-counter').textContent = (idx + 1) + ' / ' + total;
+  // show cache decision box at step 7 (index 7) for pre
+  if (type === 'pre') {
+    document.getElementById('pre-cache').style.display = idx === 7 ? 'block' : 'none';
+  }
+}
+
+function flowNext(type) {
+  const data = type === 'pre' ? preSteps : postSteps;
+  const next = flowCur[type] + 1;
+  if (next < data.length) selectFlowStep(type, next);
+}
+
+function flowReset(type) {
+  flowCur[type] = -1;
+  document.querySelectorAll('#' + type + '-steps .flow-step').forEach(s => {
+    s.classList.remove('active-step', 'done-step');
+  });
+  document.getElementById(type + '-bar').style.width = '0%';
+  document.getElementById(type + '-counter').textContent = '0 / ' + (type === 'pre' ? 9 : 10);
+  if (type === 'pre') document.getElementById('pre-cache').style.display = 'none';
+}
+
+function switchFlow(type) {
+  currentFlow = type;
+  document.querySelectorAll('.flow-tab').forEach((t, i) => {
+    t.classList.toggle('active', (i === 0 && type === 'pre') || (i === 1 && type === 'post'));
+  });
+  document.getElementById('flow-pre').style.display = type === 'pre' ? 'block' : 'none';
+  document.getElementById('flow-post').style.display = type === 'post' ? 'block' : 'none';
+}
+
+// INIT
+buildFlowSteps('pre', preSteps);
+buildFlowSteps('post', postSteps);
+</script>
+</body>
+</html>
